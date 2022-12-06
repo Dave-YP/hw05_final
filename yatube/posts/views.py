@@ -22,14 +22,13 @@ def index(request):
 
 def group_posts(request, slug):
     group = get_object_or_404(Group, slug=slug)
-    posts = Post.objects.filter(group=group)
+    posts = group.posts.all()
     page_obj = paginator_obj(request, posts)
     template = 'posts/group_list.html'
     title = "Записи сообщества"
     context = {
         'title': title,
         'group': group,
-        'posts': posts,
         'page_obj': page_obj,
     }
     return render(request, template, context)
@@ -38,7 +37,7 @@ def group_posts(request, slug):
 def profile(request, username):
     user_author = get_object_or_404(User, username=username)
     template = 'posts/profile.html'
-    posts = Post.objects.filter(author=user_author)
+    posts = user_author.posts.all()
     user_number = posts.count()
     following = request.user.is_authenticated and Follow.objects.filter(
         user=request.user,
@@ -126,8 +125,8 @@ def add_comment(request, post_id):
 @login_required
 def follow_index(request):
     template = 'posts/follow.html'
-    post = Post.objects.filter(author__following__user=request.user)
-    page_obj = paginator_obj(request, post)
+    posts = Post.objects.filter(author__following__user=request.user)
+    page_obj = paginator_obj(request, posts)
     context = {
         'page_obj': page_obj,
     }
